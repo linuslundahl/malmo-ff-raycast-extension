@@ -1,0 +1,45 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "malmo-ff",
+  "title": "Malmö FF",
+  "description": "Malmö FF standings and schedule",
+  "icon": "malmo-icon.png",
+  "author": "linuslundahl",
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "index",
+      "title": "Summary",
+      "subtitle": "Malmö FF standings and schedule",
+      "description": "A summary of Malmö FF's current standings and upcoming games",
+      "mode": "view"
+    },
+    {
+      "name": "next-game",
+      "title": "Malmö FF",
+      "description": "A summary of Malmö FF's current standings and upcoming games",
+      "mode": "no-view",
+      "interval": "15m"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.76.0",
+    "@raycast/utils": "^1.16.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^1.0.8",
+    "@types/node": "^20.14.9",
+    "@types/react": "^18.3.3",
+    "eslint": "^8.57.0",
+    "prettier": "^3.0.3",
+    "typescript": "^5.5.2"
+  },
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint",
+    "publish": "npx @raycast/api@latest publish"
+  }
+}
