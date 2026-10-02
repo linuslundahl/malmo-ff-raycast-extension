@@ -20,6 +20,12 @@
       "description": "A summary of Malmö FF's current standings and upcoming games",
       "mode": "no-view",
       "interval": "15m"
+    },
+    {
+      "name": "next-game-menubar",
+      "title": "Next Game in Menu Bar",
+      "description": "Shows Malmö FF's next game in the menu bar",
+      "mode": "menu-bar"
     }
   ],
   "dependencies": {

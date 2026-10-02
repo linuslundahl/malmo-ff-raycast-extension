@@ -1,26 +1,28 @@
-import { Action, ActionPanel, List, useNavigation } from "@raycast/api";
+import { Action, ActionPanel, Icon, List, useNavigation } from "@raycast/api";
+import { useFetch } from "@raycast/utils";
 import Table from "./components/Table";
 import Schedule, { isSchedule } from "./components/Schedule";
-import { useFetch } from "@raycast/utils";
 import type { ScheduleData } from "./types";
 import { formatGame } from "./utils";
 
 export default function Command() {
   const { push } = useNavigation();
-  const { isLoading, data } = useFetch<ScheduleData>(`https://api.unwi.se/sport/mff/schedule`, {
+  const { isLoading, data } = useFetch<ScheduleData>("https://api.unwi.se/sport/mff/schedule", {
     keepPreviousData: true,
   });
 
-  let nextGame = null;
-  if (!isLoading && isSchedule(data) && data?.unplayed.length !== 0) {
-    nextGame = formatGame(data?.unplayed[0]);
-  }
+  const nextGame = isSchedule(data) && data.unplayed.length > 0 ? formatGame(data.unplayed[0]) : null;
 
   return (
-    <List navigationTitle={nextGame?.full ?? "Loading next game..."} isShowingDetail={false} isLoading={isLoading}>
+    <List
+      navigationTitle={nextGame?.full ?? (isLoading ? "Loading next game…" : "Malmö FF")}
+      isShowingDetail={false}
+      isLoading={isLoading}
+    >
       <List.Section title="Men">
         <List.Item
           key="table-men"
+          icon={Icon.Trophy}
           title="Table"
           subtitle="Allsvenskan"
           actions={
@@ -31,6 +33,7 @@ export default function Command() {
         />
         <List.Item
           key="schedule-men"
+          icon={Icon.Calendar}
           title="Schedule"
           subtitle="Allsvenskan"
           actions={
@@ -43,8 +46,9 @@ export default function Command() {
       <List.Section title="Women">
         <List.Item
           key="table-women"
+          icon={Icon.Trophy}
           title="Table"
-          subtitle="Elitettan"
+          subtitle="Damallsvenskan"
           actions={
             <ActionPanel>
               <Action title="Select" onAction={() => push(<Table gender="dam" />)} />
@@ -53,8 +57,9 @@ export default function Command() {
         />
         <List.Item
           key="schedule-women"
+          icon={Icon.Calendar}
           title="Schedule"
-          subtitle="Elitettan"
+          subtitle="Damallsvenskan"
           actions={
             <ActionPanel>
               <Action title="Select" onAction={() => push(<Schedule gender="dam" />)} />

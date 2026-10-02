@@ -1,21 +1,24 @@
 export type Table = {
   title: string;
-  table: {
-    teamName: string;
-    teamSlug: string;
-    rank: number;
-    previousRank: number;
-    stats: {
-      gp: number;
-      w: number;
-      d: number;
-      l: number;
-      gf: number;
-      ga: number;
-      gd: number;
-      pts: number;
-    };
-  }[];
+  table: Team[];
+};
+
+export type Team = {
+  teamName: string;
+  teamSlug: string;
+  rank: number;
+  previousRank: number;
+  /** The API returns all stats as strings, e.g. `"pts": "51"` */
+  stats: {
+    gp: string;
+    w: string;
+    d: string;
+    l: string;
+    gf: string;
+    ga: string;
+    gd: string;
+    pts: string;
+  };
 };
 
 export type Data = {
@@ -33,10 +36,15 @@ export type Game = {
   venue: string;
   competition: string;
   location: string;
-  homeTeamScore: number;
-  awayTeamScore: number;
-  gameOutcome: "win" | "loss" | "tie";
-  homeTeamPoints: number;
+  /** null for games that haven't been played yet */
+  homeTeamScore: number | null;
+  /** null for games that haven't been played yet */
+  awayTeamScore: number | null;
+  /** null for games that haven't been played yet */
+  gameOutcome: "win" | "loss" | "tie" | null;
+  homeTeamPoints: number | null;
+  awayTeamPoints: number | null;
+  played: boolean;
 };
 
 export type ScheduleData = {

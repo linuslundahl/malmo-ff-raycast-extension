@@ -1,20 +1,19 @@
-import { Action, ActionPanel, Color, Icon, List } from "@raycast/api";
+import { Action, ActionPanel, Color, Icon, Keyboard, List } from "@raycast/api";
 import { useFetch } from "@raycast/utils";
-import { ContextProvider } from "../context";
-import { useAppContext } from "../hooks";
+import { useCallback, useMemo, useState } from "react";
 import type { Game, ScheduleData } from "../types";
 import { formatDate } from "../utils";
 
 export const isSchedule = (item: unknown): item is ScheduleData =>
   typeof item === "object" && item !== null && "played" in item && "unplayed" in item;
 
-const colorMapping = {
+const colorMapping: Record<NonNullable<Game["gameOutcome"]>, Color> = {
   win: Color.Green,
   loss: Color.Red,
   tie: Color.Orange,
 };
 
-const Details = ({ title, text }: { title: string; text?: string }) => {
+const DetailRow = ({ title, text }: { title: string; text?: string }) => {
   if (text === undefined || text === "") {
     return null;
   }
@@ -27,37 +26,33 @@ const Details = ({ title, text }: { title: string; text?: string }) => {
   );
 };
 
-const Game = ({ game }: { game: Game }) => {
-  const { showDetails, setShowDetails } = useAppContext();
-
-  const accessories = [];
-  if (game.gameOutcome !== undefined) {
-    accessories.push({
-      text: { value: game.gameOutcome, color: colorMapping[game.gameOutcome] },
-    });
-  }
+const GameItem = ({ game, onToggleDetails }: { game: Game; onToggleDetails: () => void }) => {
+  const score =
+    game.homeTeamScore !== null && game.awayTeamScore !== null
+      ? ` ${game.homeTeamScore} - ${game.awayTeamScore} `
+      : " - ";
 
   return (
     <List.Item
-      title={`${game.homeTeam}${game.homeTeamScore !== undefined ? ` ${game.homeTeamScore}` : ""} - ${
-        game.awayTeamScore !== undefined ? `${game.awayTeamScore} ` : ""
-      }${game.awayTeam}`}
-      subtitle={formatDate(game.date, game.time)}
-      accessories={accessories}
+      title={`${game.homeTeam}${score}${game.awayTeam}`}
+      subtitle={formatDate(game.timestamp)}
+      accessories={
+        game.gameOutcome !== null ? [{ tag: { value: game.gameOutcome, color: colorMapping[game.gameOutcome] } }] : []
+      }
       detail={
         <List.Item.Detail
           metadata={
             <List.Item.Detail.Metadata>
-              <Details title="Competition" text={game.competition} />
-              <Details
-                title="Home score"
-                text={game.homeTeamScore !== undefined ? game.homeTeamScore.toString() : undefined}
+              <DetailRow title="Competition" text={game.competition} />
+              <DetailRow
+                title="Result"
+                text={
+                  game.homeTeamScore !== null && game.awayTeamScore !== null
+                    ? `${game.homeTeamScore} - ${game.awayTeamScore}`
+                    : undefined
+                }
               />
-              <Details
-                title="Away score"
-                text={game.awayTeamScore !== undefined ? game.awayTeamScore.toString() : undefined}
-              />
-              <Details title="Venue" text={game.venue} />
+              <DetailRow title="Venue" text={game.venue} />
             </List.Item.Detail.Metadata>
           }
         />
@@ -65,9 +60,10 @@ const Game = ({ game }: { game: Game }) => {
       actions={
         <ActionPanel>
           <Action
-            title={`${showDetails ? "Hide" : "Show"}  Details`}
+            title="Toggle Details"
             icon={Icon.Sidebar}
-            onAction={() => setShowDetails()}
+            shortcut={Keyboard.Shortcut.Common.ToggleQuickLook}
+            onAction={onToggleDetails}
           />
         </ActionPanel>
       }
@@ -75,52 +71,69 @@ const Game = ({ game }: { game: Game }) => {
   );
 };
 
-const GamesList = ({ title, games = [] }: { title: string; games: (Game | undefined)[] }) => {
-  if (games.length === 0) {
+const GamesList = ({
+  title,
+  games = [],
+  onToggleDetails,
+}: {
+  title: string;
+  games: (Game | undefined)[];
+  onToggleDetails: () => void;
+}) => {
+  const filtered = games.filter((game): game is Game => game !== undefined);
+
+  if (filtered.length === 0) {
     return null;
   }
 
   return (
     <List.Section title={title}>
-      {games.map((game, i) => {
-        if (game === undefined) {
-          return null;
-        }
-        return <Game game={game} key={`${i}-${game.homeSlug}-${game.awaySlug}`} />;
-      })}
+      {filtered.map((game) => (
+        <GameItem
+          key={`${game.date}-${game.homeSlug}-${game.awaySlug}`}
+          game={game}
+          onToggleDetails={onToggleDetails}
+        />
+      ))}
     </List.Section>
   );
 };
 
-const ScheduleComponent = ({ gender }: { gender?: string }) => {
+export default function Schedule({ gender }: { gender?: string }) {
+  const [showDetails, setShowDetails] = useState(false);
   const { isLoading, data } = useFetch<ScheduleData>(
     `https://api.unwi.se/sport/mff/${gender !== undefined ? `${gender}/` : ""}schedule`,
     { keepPreviousData: true },
   );
-  const { showDetails } = useAppContext();
 
-  if (isLoading || !isSchedule(data)) {
+  const toggleDetails = useCallback(() => setShowDetails((value) => !value), []);
+
+  const sections = useMemo(() => {
+    if (!isSchedule(data)) {
+      return null;
+    }
+    return {
+      nextGame: data.unplayed.slice(0, 1),
+      lastGame: data.played.slice(-1),
+      unplayed: data.unplayed.slice(1),
+      played: data.played,
+    };
+  }, [data]);
+
+  if (isLoading || sections === null) {
     return (
-      <List navigationTitle="Table">
-        <List.EmptyView icon={Icon.SoccerBall} title={isLoading ? "Loading" : "Unable to load Schedule"} />
+      <List navigationTitle="Schedule" isLoading={isLoading}>
+        <List.EmptyView icon={Icon.SoccerBall} title={isLoading ? "Loading…" : "Unable to load schedule"} />
       </List>
     );
   }
 
   return (
     <List filtering={false} navigationTitle="Schedule" isLoading={isLoading} isShowingDetail={showDetails}>
-      <GamesList title="Next game" games={data?.unplayed.length !== 0 ? [data?.unplayed[0]] : []} />
-      <GamesList title="Last game" games={data?.played.length !== 0 ? [data?.played.at(-1)] : []} />
-      <GamesList title="Unplayed" games={data?.unplayed.slice(1)} />
-      <GamesList title="Played" games={data?.played} />
+      <GamesList title="Next game" games={sections.nextGame} onToggleDetails={toggleDetails} />
+      <GamesList title="Last game" games={sections.lastGame} onToggleDetails={toggleDetails} />
+      <GamesList title="Unplayed" games={sections.unplayed} onToggleDetails={toggleDetails} />
+      <GamesList title="Played" games={sections.played} onToggleDetails={toggleDetails} />
     </List>
-  );
-};
-
-export default function Schedule({ gender }: { gender?: string }) {
-  return (
-    <ContextProvider>
-      <ScheduleComponent gender={gender} />
-    </ContextProvider>
   );
 }

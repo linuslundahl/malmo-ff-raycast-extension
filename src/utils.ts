@@ -1,16 +1,18 @@
 import { Game } from "./types";
 
-export const formatDate = (date: string, time?: string): string =>
-  `${new Date(date).toLocaleDateString("en-US", {
+export const formatDate = (timestamp: number): string =>
+  new Date(timestamp * 1000).toLocaleDateString("en-US", {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
-  })}${![undefined, "00:00"].includes(time) ? ` at ${time}` : ""}`;
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
 export const formatGame = (game: Game): { teams: string; date: string; full: string } => {
   const teams = `${game.homeTeam} - ${game.awayTeam}`;
-  const date = formatDate(game.date, game.time);
+  const date = formatDate(game.timestamp);
   return {
     teams,
     date,

@@ -4,12 +4,16 @@ import { formatGame } from "./utils";
 import { ScheduleData } from "./types";
 
 export default async function Command() {
-  const response = await fetch(`https://api.unwi.se/sport/mff/schedule`);
-  const data = (await response.json()) as unknown as ScheduleData;
+  try {
+    const response = await fetch("https://api.unwi.se/sport/mff/schedule");
+    const data = (await response.json()) as unknown as ScheduleData;
 
-  if (isSchedule(data) && data?.unplayed.length !== 0) {
-    const nextGame = formatGame(data?.unplayed[0]);
-    updateCommandMetadata({ subtitle: nextGame?.full ?? "Loading next game..." });
+    if (isSchedule(data) && data.unplayed.length > 0) {
+      const nextGame = formatGame(data.unplayed[0]);
+      await updateCommandMetadata({ subtitle: nextGame.full });
+    }
+  } catch {
+    // Background refresh failures are non-fatal; keep the previous subtitle.
   }
 
   if (environment.launchType === LaunchType.UserInitiated) {
