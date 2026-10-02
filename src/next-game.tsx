@@ -1,6 +1,5 @@
 import { LaunchType, environment, launchCommand, updateCommandMetadata } from "@raycast/api";
 import { isSchedule } from "./components/Schedule";
-import fetch from "node-fetch";
 import { formatGame } from "./utils";
 import { ScheduleData } from "./types";
 
