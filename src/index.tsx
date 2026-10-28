@@ -1,10 +1,13 @@
-import { Action, ActionPanel, Icon, List, useNavigation } from "@raycast/api";
+import { Action, ActionPanel, Icon, List, updateCommandMetadata, useNavigation } from "@raycast/api";
 import { useFetch } from "@raycast/utils";
+import { useEffect } from "react";
 import Table from "./components/Table";
 import Schedule, { isSchedule } from "./components/Schedule";
 import News from "./components/News";
 import type { ScheduleData } from "./types";
 import { formatGame } from "./utils";
+
+const FALLBACK_SUBTITLE = "Malmö FF season summary";
 
 export default function Command() {
   const { push } = useNavigation();
@@ -13,6 +16,13 @@ export default function Command() {
   });
 
   const nextGame = isSchedule(data) && data.unplayed.length > 0 ? formatGame(data.unplayed[0]) : null;
+
+  // Keep the root-search subtitle in sync with the next game whenever the command is opened.
+  useEffect(() => {
+    updateCommandMetadata({ subtitle: nextGame?.full ?? FALLBACK_SUBTITLE }).catch(() => {
+      // Non-fatal; keep the previous subtitle.
+    });
+  }, [nextGame?.full]);
 
   return (
     <List

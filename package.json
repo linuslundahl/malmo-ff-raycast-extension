@@ -9,17 +9,10 @@
   "commands": [
     {
       "name": "index",
-      "title": "Summary",
-      "subtitle": "Malmö FF standings and schedule",
+      "title": "Malmö FF",
+      "subtitle": "Malmö FF season summary",
       "description": "A summary of Malmö FF's current standings and upcoming games",
       "mode": "view"
-    },
-    {
-      "name": "next-game",
-      "title": "Malmö FF",
-      "description": "A summary of Malmö FF's current standings and upcoming games",
-      "mode": "no-view",
-      "interval": "15m"
     },
     {
       "name": "next-game-menubar",
