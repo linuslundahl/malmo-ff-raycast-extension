@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Icon, List, updateCommandMetadata, useNavigation } from "@raycast/api";
+import { Action, ActionPanel, Icon, List, LocalStorage, updateCommandMetadata, useNavigation } from "@raycast/api";
 import { useFetch } from "@raycast/utils";
 import { useEffect } from "react";
 import Table from "./components/Table";
@@ -6,8 +6,7 @@ import Schedule, { isSchedule } from "./components/Schedule";
 import News from "./components/News";
 import type { ScheduleData } from "./types";
 import { formatGame } from "./utils";
-
-const FALLBACK_SUBTITLE = "Malmö FF season summary";
+import { FALLBACK_SUBTITLE, NEXT_GAME_STORAGE_KEY } from "./constants";
 
 export default function Command() {
   const { push } = useNavigation();
@@ -17,12 +16,30 @@ export default function Command() {
 
   const nextGame = isSchedule(data) && data.unplayed.length > 0 ? formatGame(data.unplayed[0]) : null;
 
-  // Keep the root-search subtitle in sync with the next game whenever the command is opened.
+  // Apply the next-game subtitle cached by the menu-bar command right away, so
+  // the root-search subtitle is fresh even when this view hasn't been opened.
   useEffect(() => {
+    LocalStorage.getItem<string>(NEXT_GAME_STORAGE_KEY)
+      .then((stored) => {
+        if (typeof stored === "string" && stored.length > 0) {
+          return updateCommandMetadata({ subtitle: stored });
+        }
+        return undefined;
+      })
+      .catch(() => {
+        // Non-fatal; keep the manifest subtitle.
+      });
+  }, []);
+
+  // Once the live fetch resolves, reconcile the subtitle with fresh data.
+  useEffect(() => {
+    if (isLoading) {
+      return;
+    }
     updateCommandMetadata({ subtitle: nextGame?.full ?? FALLBACK_SUBTITLE }).catch(() => {
       // Non-fatal; keep the previous subtitle.
     });
-  }, [nextGame?.full]);
+  }, [isLoading, nextGame?.full]);
 
   return (
     <List
