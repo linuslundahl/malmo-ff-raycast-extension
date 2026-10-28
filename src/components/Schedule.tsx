@@ -116,7 +116,9 @@ const GameItem = ({
       title={`${game.homeTeam}${score !== undefined ? ` ${score} ` : " - "}${game.awayTeam}`}
       subtitle={formatDate(game.timestamp)}
       accessories={
-        game.gameOutcome !== null ? [{ tag: { value: game.gameOutcome, color: colorMapping[game.gameOutcome] } }] : []
+        game.gameOutcome !== null
+          ? [{ tag: { value: game.gameOutcome, color: colorMapping[game.gameOutcome] } }]
+          : []
       }
       detail={<GameDetail game={game} headToHead={headToHead} />}
       actions={
@@ -207,24 +209,52 @@ export default function Schedule({ gender }: { gender?: string }) {
       nextGame: data.unplayed.slice(0, 1),
       lastGame: data.played.slice(-1),
       unplayed: data.unplayed.slice(1),
-      played: data.played,
+      played: data.played.toReversed(),
     };
   }, [data]);
 
   if (isLoading || sections === null) {
     return (
       <List navigationTitle="Schedule" isLoading={isLoading}>
-        <List.EmptyView icon={Icon.SoccerBall} title={isLoading ? "Loading…" : "Unable to load schedule"} />
+        <List.EmptyView
+          icon={Icon.SoccerBall}
+          title={isLoading ? "Loading…" : "Unable to load schedule"}
+        />
       </List>
     );
   }
 
   return (
-    <List filtering={false} navigationTitle="Schedule" isLoading={isLoading} isShowingDetail={showDetails}>
-      <GamesList title="Next game" games={sections.nextGame} headToHead={sections.headToHead} onToggleDetails={toggleDetails} />
-      <GamesList title="Last game" games={sections.lastGame} headToHead={sections.headToHead} onToggleDetails={toggleDetails} />
-      <GamesList title="Unplayed" games={sections.unplayed} headToHead={sections.headToHead} onToggleDetails={toggleDetails} />
-      <GamesList title="Played" games={sections.played} headToHead={sections.headToHead} onToggleDetails={toggleDetails} />
+    <List
+      filtering={false}
+      navigationTitle="Schedule"
+      isLoading={isLoading}
+      isShowingDetail={showDetails}
+    >
+      <GamesList
+        title="Next game"
+        games={sections.nextGame}
+        headToHead={sections.headToHead}
+        onToggleDetails={toggleDetails}
+      />
+      <GamesList
+        title="Last game"
+        games={sections.lastGame}
+        headToHead={sections.headToHead}
+        onToggleDetails={toggleDetails}
+      />
+      <GamesList
+        title="Upcoming"
+        games={sections.unplayed}
+        headToHead={sections.headToHead}
+        onToggleDetails={toggleDetails}
+      />
+      <GamesList
+        title="Previous"
+        games={sections.played}
+        headToHead={sections.headToHead}
+        onToggleDetails={toggleDetails}
+      />
     </List>
   );
 }
