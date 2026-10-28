@@ -51,3 +51,13 @@ export type ScheduleData = {
   played: Game[];
   unplayed: Game[];
 };
+
+export type NewsItem = {
+  title: string;
+  link: string;
+  description: string | null;
+  timestamp: number;
+  date: string;
+  type: string;
+  source: string;
+};

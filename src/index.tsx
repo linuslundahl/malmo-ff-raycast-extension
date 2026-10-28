@@ -2,6 +2,7 @@ import { Action, ActionPanel, Icon, List, useNavigation } from "@raycast/api";
 import { useFetch } from "@raycast/utils";
 import Table from "./components/Table";
 import Schedule, { isSchedule } from "./components/Schedule";
+import News from "./components/News";
 import type { ScheduleData } from "./types";
 import { formatGame } from "./utils";
 
@@ -19,6 +20,19 @@ export default function Command() {
       isShowingDetail={false}
       isLoading={isLoading}
     >
+      <List.Section title="News">
+        <List.Item
+          key="news"
+          icon={Icon.Rss}
+          title="News"
+          subtitle="Latest headlines"
+          actions={
+            <ActionPanel>
+              <Action title="Select" onAction={() => push(<News />)} />
+            </ActionPanel>
+          }
+        />
+      </List.Section>
       <List.Section title="Men">
         <List.Item
           key="table-men"
