@@ -1,3 +1,5 @@
-# Malmö FF
+# Malmö FF Raycast extension
 
-Malmö FF standings and schedule
+Malmö FF news, standings and schedule in Raycast
+
+[http://mff.unwi.se](https://mff.unwi.se)
